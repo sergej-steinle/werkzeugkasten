@@ -147,3 +147,11 @@ func TestWerkzeug_UploadOneFile(t *testing.T) {
 	_ = os.Remove(fmt.Sprintf("./testdata/uploads/%s", uploadedFile.NewFileName))
 
 }
+
+func TestWerkzeug_CreateDir(t *testing.T) {
+	var werkzeug Werkzeug
+	err := werkzeug.CreateDir("./testdata/mydir")
+	if err != nil {
+		t.Error(err)
+	}
+}

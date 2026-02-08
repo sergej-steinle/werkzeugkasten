@@ -52,6 +52,7 @@ func (w *Werkzeug) UploadOneFile(r *http.Request, uploadDir string, rename ...bo
 
 	return file[0], err
 }
+
 // UploadFiles processes all files from a multipart form request and saves them
 // to uploadDir. It validates each file's content type against AllowedFileTypes
 // (all types are allowed when the slice is empty). If rename is true (default),
@@ -71,6 +72,11 @@ func (w *Werkzeug) UploadFiles(r *http.Request, uploadDir string, rename ...bool
 
 	if err != nil {
 		return nil, errors.New("the upload is to big")
+	}
+
+	err = w.CreateDir(uploadDir)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, fHeaders := range r.MultipartForm.File {
@@ -146,4 +152,17 @@ func (w *Werkzeug) UploadFiles(r *http.Request, uploadDir string, rename ...bool
 	}
 
 	return uploadedFiles, nil
+}
+
+func (w *Werkzeug) CreateDir(path string) error {
+	const mode = 0755
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.MkdirAll(path, mode)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
