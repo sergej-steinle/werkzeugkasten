@@ -148,6 +148,32 @@ func TestWerkzeug_UploadOneFile(t *testing.T) {
 
 }
 
+func TestWerkzeug_DownloadStaticFile(t *testing.T) {
+	var werkzeug Werkzeug
+
+	request := httptest.NewRequest("GET", "/download", nil)
+	recorder := httptest.NewRecorder()
+
+	werkzeug.DownloadStaticFile(recorder, request, "./testdata", "image.png", "download-image.png")
+
+	result := recorder.Result()
+	defer result.Body.Close()
+
+	if result.StatusCode != 200 {
+		t.Errorf("expected status 200 but got %d", result.StatusCode)
+	}
+
+	contentDisposition := result.Header.Get("Content-Disposition")
+	expected := `attachment; filename="download-image.png"`
+	if contentDisposition != expected {
+		t.Errorf("expected Content-Disposition %q but got %q", expected, contentDisposition)
+	}
+
+	if result.ContentLength <= 0 {
+		t.Error("expected a non-empty response body")
+	}
+}
+
 func TestWerkzeug_CreateDir(t *testing.T) {
 	var werkzeug Werkzeug
 	err := werkzeug.CreateDir("./testdata/mydir")

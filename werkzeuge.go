@@ -166,3 +166,11 @@ func (w *Werkzeug) CreateDir(path string) error {
 
 	return nil
 }
+
+func (w *Werkzeug) DownloadStaticFile(wr http.ResponseWriter, r *http.Request, p, file, displayName string) {
+	fp := filepath.Join(p, file)
+
+	wr.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", displayName))
+
+	http.ServeFile(wr, r, fp)
+}
