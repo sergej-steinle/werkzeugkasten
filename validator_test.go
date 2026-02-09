@@ -17,6 +17,36 @@ func TestValidator_Valid(t *testing.T) {
 	}
 }
 
+func TestValidator_Valid_WithNonFieldErrors(t *testing.T) {
+	var v Validator
+	if !v.Valid() {
+		t.Error("expected Valid() to return true initially")
+	}
+
+	v.AddNonFieldError("something went wrong")
+	if v.Valid() {
+		t.Error("expected Valid() to return false after adding a non-field error")
+	}
+}
+
+func TestValidator_AddNonFieldError(t *testing.T) {
+	var v Validator
+	v.AddNonFieldError("error one")
+	v.AddNonFieldError("error two")
+	v.AddNonFieldError("error one")
+
+	if len(v.NonFieldErrors) != 3 {
+		t.Errorf("expected 3 non-field errors but got %d", len(v.NonFieldErrors))
+	}
+
+	if v.NonFieldErrors[0] != "error one" {
+		t.Errorf("expected first error to be %q, got %q", "error one", v.NonFieldErrors[0])
+	}
+	if v.NonFieldErrors[1] != "error two" {
+		t.Errorf("expected second error to be %q, got %q", "error two", v.NonFieldErrors[1])
+	}
+}
+
 func TestValidator_AddFieldError(t *testing.T) {
 	var v Validator
 	v.AddFieldError("email", "is required")
@@ -88,6 +118,31 @@ func TestMaxChars(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := MaxChars(tt.value, tt.n); got != tt.expected {
 				t.Errorf("MaxChars(%q, %d) = %v, want %v", tt.value, tt.n, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestMinChars(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    string
+		n        int
+		expected bool
+	}{
+		{"over minimum", "abcd", 3, true},
+		{"at minimum", "abc", 3, true},
+		{"under minimum", "ab", 3, false},
+		{"empty string", "", 1, false},
+		{"zero minimum", "", 0, true},
+		{"unicode chars at minimum", "äöü", 3, true},
+		{"unicode chars under minimum", "äö", 3, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MinChars(tt.value, tt.n); got != tt.expected {
+				t.Errorf("MinChars(%q, %d) = %v, want %v", tt.value, tt.n, got, tt.expected)
 			}
 		})
 	}
